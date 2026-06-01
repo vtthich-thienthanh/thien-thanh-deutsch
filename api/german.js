@@ -1,64 +1,60 @@
+import OpenAI from "openai";
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
+
 export default async function handler(req, res) {
   try {
-    const { text } = req.body;
+    const { word } = req.body;
 
-    if (!process.env.OPENAI_API_KEY) {
-      return res.status(500).json({
-        error: "Thiếu OPENAI_API_KEY trên Vercel",
+    if (!word) {
+      return res.status(400).json({
+        error: "Thiếu từ cần dịch",
       });
     }
 
     const prompt = `
-Bạn là AI hỗ trợ học tiếng Đức.
+Bạn là giáo viên tiếng Đức.
 
-Người dùng nhập tiếng Việt.
-Trả về JSON đúng format:
+Từ tiếng Việt: "${word}"
+
+Hãy trả về JSON đúng format:
 
 {
-  "vi": "",
   "de": "",
-  "deType": "",
   "deRead": "",
+  "deType": "",
   "deExample": "",
   "deExampleRead": "",
   "viMeaning": "",
   "en": "",
-  "enType": "",
   "enRead": "",
-  "enExample": ""
+  "enType": ""
 }
 
-Input:
-${text}
+Chỉ trả JSON.
 `;
 
-    const response = await fetch(
-      "https://api.openai.com/v1/chat/completions",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+    const chat = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        {
+          role: "user",
+          content: prompt,
         },
-        body: JSON.stringify({
-          model: "gpt-4o-mini",
-          messages: [
-            {
-              role: "user",
-              content: prompt,
-            },
-          ],
-          temperature: 0.3,
-        }),
-      }
-    );
+      ],
+      temperature: 0.3,
+    });
 
-    const data = await response.json();
+    const text = chat.choices[0].message.content;
 
-    const content = data.choices?.[0]?.message?.content || "{}";
+    const data = JSON.parse(text);
 
-    return res.status(200).json(JSON.parse(content));
+    return res.status(200).json(data);
   } catch (err) {
+    console.error(err);
+
     return res.status(500).json({
       error: err.message,
     });
