@@ -1,21 +1,18 @@
 export default async function handler(req, res) {
   try {
-    if (req.method !== "POST") {
-      return res.status(405).json({ error: "Method not allowed" });
-    }
-
     const { text } = req.body;
 
+    if (!process.env.OPENAI_API_KEY) {
+      return res.status(500).json({
+        error: "Thiếu OPENAI_API_KEY trên Vercel",
+      });
+    }
+
     const prompt = `
-Người dùng nhập: "${text}"
+Bạn là AI hỗ trợ học tiếng Đức.
 
-Trả về JSON hợp lệ.
-
-Không markdown.
-Không giải thích.
-Không thêm chữ ngoài JSON.
-
-Format:
+Người dùng nhập tiếng Việt.
+Trả về JSON đúng format:
 
 {
   "vi": "",
@@ -30,6 +27,9 @@ Format:
   "enRead": "",
   "enExample": ""
 }
+
+Input:
+${text}
 `;
 
     const response = await fetch(
@@ -55,20 +55,12 @@ Format:
 
     const data = await response.json();
 
-    let content = data.choices[0].message.content;
+    const content = data.choices?.[0]?.message?.content || "{}";
 
-    content = content.replace(/```json/g, "").replace(/```/g, "").trim();
-
-    const parsed = JSON.parse(content);
-
-    return res.status(200).json(parsed);
-
-  } catch (error) {
-    console.error(error);
-
+    return res.status(200).json(JSON.parse(content));
+  } catch (err) {
     return res.status(500).json({
-      error: "AI failed",
-      detail: error.message,
+      error: err.message,
     });
   }
 }
