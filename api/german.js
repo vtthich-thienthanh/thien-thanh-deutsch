@@ -5,6 +5,7 @@ const openai = new OpenAI({
 });
 
 export default async function handler(req, res) {
+  // Chỉ cho phép POST
   if (req.method !== "POST") {
     return res.status(405).json({
       error: "Method not allowed",
@@ -13,58 +14,85 @@ export default async function handler(req, res) {
 
   try {
     const { text } = req.body;
-    const word = text;
 
-    if (!word) {
+    // Kiểm tra dữ liệu nhập
+    if (!text || text.trim() === "") {
       return res.status(400).json({
         error: "Thiếu từ cần dịch",
       });
     }
 
     const prompt = `
-Bạn là giáo viên tiếng Đức.
+Bạn là AI giáo viên tiếng Đức thông minh.
 
-Từ tiếng Việt: "${word}"
+Nhiệm vụ:
+- Người dùng nhập tiếng Việt.
+- Trả kết quả JSON đúng format.
+- Dịch sang tiếng Đức và tiếng Anh tự nhiên.
+- Tạo ví dụ ngắn dễ học.
+- Phiên âm dễ đọc cho người Việt.
 
-Hãy trả về JSON đúng format:
+QUAN TRỌNG:
+- deRead chỉ được phiên âm từ tiếng Đức trong trường "de".
+- enRead chỉ được phiên âm từ tiếng Anh trong trường "en".
+- KHÔNG được phiên âm từ tiếng Việt người dùng nhập.
+- KHÔNG được lặp lại nguyên văn tiếng Việt trong phần cách đọc.
+
+Format JSON phải đúng:
 
 {
+  "vi": "",
   "de": "",
-  "deRead": "",
   "deType": "",
+  "deRead": "",
   "deExample": "",
   "deExampleRead": "",
-  "viMeaning": "",
+  "deMeaning": "",
   "en": "",
+  "enType": "",
   "enRead": "",
-  "enType": ""
+  "enExample": "",
+  "enExampleRead": "",
+  "enMeaning": ""
 }
 
-Chỉ trả JSON.
+Từ cần dịch:
+"${text}"
 `;
 
-    const chat = await openai.chat.completions.create({
+    const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
+        {
+          role: "system",
+          content: "Bạn là chuyên gia tiếng Đức.",
+        },
         {
           role: "user",
           content: prompt,
         },
       ],
-      temperature: 0.3,
+      temperature: 0.7,
     });
 
-    const textResult = chat.choices[0].message.content;
+    const raw = completion.choices[0].message.content;
 
-    const data = JSON.parse(textResult);
+    // Làm sạch markdown nếu có
+    const cleaned = raw
+      .replace(/```json/g, "")
+      .replace(/```/g, "")
+      .trim();
 
-    return res.status(200).json(data);
+    const result = JSON.parse(cleaned);
 
-  } catch (err) {
-    console.error(err);
+    return res.status(200).json(result);
+
+  } catch (error) {
+    console.error(error);
 
     return res.status(500).json({
-      error: err.message,
+      error: "Lỗi AI",
+      detail: error.message,
     });
   }
 }
