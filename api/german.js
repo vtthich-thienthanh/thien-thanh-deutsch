@@ -5,8 +5,15 @@ const openai = new OpenAI({
 });
 
 export default async function handler(req, res) {
+  if (req.method !== "POST") {
+    return res.status(405).json({
+      error: "Method not allowed",
+    });
+  }
+
   try {
-    const { word } = req.body;
+    const { text } = req.body;
+    const word = text;
 
     if (!word) {
       return res.status(400).json({
@@ -47,11 +54,12 @@ Chỉ trả JSON.
       temperature: 0.3,
     });
 
-    const text = chat.choices[0].message.content;
+    const textResult = chat.choices[0].message.content;
 
-    const data = JSON.parse(text);
+    const data = JSON.parse(textResult);
 
     return res.status(200).json(data);
+
   } catch (err) {
     console.error(err);
 
