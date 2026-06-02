@@ -7,8 +7,6 @@ function App() {
 
   const [loading, setLoading] = useState(false);
 
-  const [history, setHistory] = useState([]);
-
   const [result, setResult] = useState({
     de: "",
     deType: "",
@@ -78,17 +76,6 @@ function App() {
       }
 
       setResult(data);
-
-      // lưu lịch sử
-      setHistory((prev) => {
-
-        const updated = [
-          text,
-          ...prev.filter((item) => item !== text),
-        ];
-
-        return updated.slice(0, 20);
-      });
 
     } catch (err) {
 
@@ -246,14 +233,25 @@ function App() {
 
       </div>
 
-      {/* lịch sử */}
+      {/* câu thông dụng */}
       <div className="history">
 
-        <h2>Lịch sử tra nhanh</h2>
+        <h2>Một số câu thông dụng</h2>
 
         <div className="history-list">
 
-          {history.map((item, index) => (
+          {[
+            "Tôi đang làm việc",
+            "Tôi không hiểu",
+            "Xin nói chậm lại",
+            "Tôi cần nghỉ 5 phút",
+            "Hôm nay khỏe không?",
+            "Cám ơn rất nhiều",
+            "Tôi yêu gia đình tôi",
+            "Tôi đến từ Việt Nam",
+            "Chúc bạn một ngày tốt lành",
+            "Hẹn gặp lại"
+          ].map((item, index) => (
             <div
               key={index}
               className="history-item"
