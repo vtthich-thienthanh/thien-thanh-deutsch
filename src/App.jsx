@@ -2,9 +2,7 @@ import { useEffect, useState } from "react";
 import "./App.css";
 
 function App() {
-
   const [input, setInput] = useState("");
-
   const [loading, setLoading] = useState(false);
 
   const [result, setResult] = useState({
@@ -20,32 +18,34 @@ function App() {
     enExample: "",
   });
 
-  // đọc giọng
+  const commonSentences = [
+    "Toi dang lam viec",
+    "Toi khong hieu",
+    "Xin noi cham lai",
+    "Toi can nghi 5 phut",
+    "Hom nay khoe khong?",
+    "Cam on rat nhieu",
+    "Toi yeu gia dinh toi",
+    "Toi den tu Viet Nam",
+    "Chuc ban mot ngay tot lanh",
+    "Hen gap lai",
+  ];
+
   const speak = (text, lang = "de-DE") => {
-
     if (!text) return;
-
     const utterance = new SpeechSynthesisUtterance(text);
-
     utterance.lang = lang;
-
     utterance.rate = 0.9;
-
     speechSynthesis.cancel();
-
     speechSynthesis.speak(utterance);
   };
 
-  // gọi AI
   const handleTranslate = async (text) => {
-
     if (!text || text.trim() === "") return;
 
     try {
-
       setLoading(true);
 
-      // reset dữ liệu cũ
       setResult({
         de: "",
         deType: "",
@@ -64,9 +64,7 @@ function App() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          text,
-        }),
+        body: JSON.stringify({ text }),
       });
 
       const data = await res.json();
@@ -76,13 +74,9 @@ function App() {
       }
 
       setResult(data);
-
     } catch (err) {
-
-      console.log(err);
-
       setResult({
-        de: "Lỗi kết nối AI",
+        de: "Loi ket noi AI",
         deType: "",
         deRead: "",
         deExample: "",
@@ -93,119 +87,87 @@ function App() {
         enRead: "",
         enExample: "",
       });
-
     } finally {
-
       setLoading(false);
-
     }
   };
 
-  // tự động tra
   useEffect(() => {
-
     const timer = setTimeout(() => {
-
       if (input.trim()) {
         handleTranslate(input);
       }
-
     }, 700);
 
     return () => clearTimeout(timer);
-
   }, [input]);
 
   return (
     <div className="app">
-
-      <h1 className="title">
-        THIEN THANH – Deutsch Schnell Lernen
-      </h1>
+      <h1 className="title">THIEN THANH - Deutsch Schnell Lernen</h1>
 
       <p className="subtitle">
-        Nhập tiếng Việt, các ô tiếng Đức – ví dụ – tiếng Anh tự hiện để học nhanh và dùng ngay.
+        Nhap tieng Viet, cac o tieng Duc - vi du - tieng Anh tu hien de hoc nhanh va dung ngay.
       </p>
 
       <div className="input-box">
-
-        <h2>Nhập tiếng Việt</h2>
+        <h2>Nhap tieng Viet</h2>
 
         <input
           type="text"
           value={input}
-          placeholder="Ví dụ: tình yêu, luật kinh tế..."
+          placeholder="Vi du: tinh yeu, luat kinh te..."
           onChange={(e) => setInput(e.target.value)}
         />
 
         <p className="note">
-          Chỉ cần nhập, không cần bấm nút.
+          Chi can nhap, khong can bam nut.
         </p>
-
       </div>
 
       <div className="cards">
-
-        {/* tiếng Đức */}
         <div className="card">
-
-          <div className="badge">
-            1. TIẾNG ĐỨC
-          </div>
+          <div className="badge">1. TIENG DUC</div>
 
           <div className="word">
-            {loading ? "Đang xử lý..." : result.de}
+            {loading ? "Dang xu ly..." : result.de}
           </div>
 
           <div className="meaning">
-            <b>Từ loại:</b> {result.deType}
+            <b>Tu loai:</b> {result.deType}
           </div>
 
           <div className="reading">
-            Cách đọc: {result.deRead}
+            Cach doc: {result.deRead}
           </div>
 
-          <button
-            onClick={() => speak(result.de, "de-DE")}
-          >
-            🔊 Nghe từ Đức
+          <button onClick={() => speak(result.de, "de-DE")}>
+            Nghe tu Duc
           </button>
-
         </div>
 
-        {/* ví dụ */}
         <div className="card">
-
-          <div className="badge">
-            2. VÍ DỤ KHI DÙNG
-          </div>
+          <div className="badge">2. VI DU KHI DUNG</div>
 
           <div className="word">
             {result.deExample}
           </div>
 
           <div className="reading">
-            Cách đọc: {result.deExampleRead}
+            Cach doc: {result.deExampleRead}
           </div>
 
           <div className="meaning">
-            <b>Nghĩa:</b> {result.meaning}
+            <b>Nghia:</b> {result.meaning}
           </div>
 
-          <button
-            onClick={() => speak(result.deExample, "de-DE")}
-          >
-            🔊 Nghe câu Đức
+          <button onClick={() => speak(result.deExample, "de-DE")}>
+            Nghe cau Duc
           </button>
-
         </div>
 
-        {/* tiếng Anh */}
         <div className="card">
-
-          <div className="badge">
-            3. TIẾNG ANH
-          </div>
+          <div className="badge">3. TIENG ANH</div>
 
           <div className="word">
             {result.en}
@@ -216,42 +178,24 @@ function App() {
           </div>
 
           <div className="reading">
-            Cách đọc: {result.enRead}
+            Cach doc: {result.enRead}
           </div>
 
           <div className="meaning">
             {result.enExample}
           </div>
 
-          <button
-            onClick={() => speak(result.en, "en-US")}
-          >
-            🔊 Listen English
+          <button onClick={() => speak(result.en, "en-US")}>
+            Listen English
           </button>
-
         </div>
-
       </div>
 
-      {/* câu thông dụng */}
       <div className="history">
-
-        <h2>Một số câu thông dụng</h2>
+        <h2>Mot so cau thong dung</h2>
 
         <div className="history-list">
-
-          {[
-            "Tôi đang làm việc",
-            "Tôi không hiểu",
-            "Xin nói chậm lại",
-            "Tôi cần nghỉ 5 phút",
-            "Hôm nay khỏe không?",
-            "Cám ơn rất nhiều",
-            "Tôi yêu gia đình tôi",
-            "Tôi đến từ Việt Nam",
-            "Chúc bạn một ngày tốt lành",
-            "Hẹn gặp lại"
-          ].map((item, index) => (
+          {commonSentences.map((item, index) => (
             <div
               key={index}
               className="history-item"
@@ -260,11 +204,8 @@ function App() {
               {item}
             </div>
           ))}
-
         </div>
-
       </div>
-
     </div>
   );
 }
